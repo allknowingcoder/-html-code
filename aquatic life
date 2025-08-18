@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquatic Life Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin: 0 auto;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .species-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .species-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .species-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .species-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .species-card:hover .species-image {
+            transform: scale(1.05);
+        }
+
+        .species-info {
+            padding: 25px;
+        }
+
+        .species-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #87ceeb;
+        }
+
+        .species-scientific {
+            font-style: italic;
+            color: #b0c4de;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .species-description {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .species-facts {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .fact {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .fact:last-child {
+            margin-bottom: 0;
+        }
+
+        .fact-label {
+            color: #87ceeb;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .conservation-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .least-concern { background: #28a745; }
+        .near-threatened { background: #ffc107; color: #000; }
+        .vulnerable { background: #fd7e14; }
+        .endangered { background: #dc3545; }
+        .critically-endangered { background: #6f42c1; }
+
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-bar:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .species-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🌊 Aquatic Life Explorer</h1>
+        <p>Dive deep into the fascinating world of marine life and discover the incredible creatures that call our oceans home</p>
+    </div>
+
+    <div class="container">
+        <input type="text" class="search-bar" id="searchBar" placeholder="🔍 Search for aquatic species...">
+        
+        <div class="species-grid" id="speciesGrid">
+            <!-- Species cards will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Modal for detailed view -->
+    <div id="speciesModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody">
+                <!-- Modal content will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const aquaticSpecies = [
+            {
+                name: "Great White Shark",
+                scientific: "Carcharodon carcharias",
+                image: "https://images.unsplash.com/photo-1571406252062-8e40bfcd3cd8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "The great white shark is one of the ocean's most formidable predators, known for its powerful build and razor-sharp teeth. These apex predators can grow up to 20 feet in length and are found in coastal waters worldwide.",
+                habitat: "Coastal and open ocean waters",
+                diet: "Fish, seals, sea lions, dolphins",
+                size: "15-20 feet",
+                lifespan: "70+ years",
+                conservation: "vulnerable",
+                detailedInfo: "Great whites are incredible hunters with heightened senses. They can detect a single drop of blood in 25 gallons of water and sense electrical fields from other animals. Despite their fearsome reputation, they're more threatened by humans than we are by them, with only 5-10 unprovoked attacks globally each year."
+            },
+            {
+                name: "Blue Whale",
+                scientific: "Balaenoptera musculus",
+                image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "The blue whale is the largest animal ever known to have lived on Earth. These magnificent giants can reach lengths of up to 100 feet and weigh as much as 200 tons, yet they feed almost exclusively on tiny krill.",
+                habitat: "Deep ocean waters worldwide",
+                diet: "Krill and small fish",
+                size: "80-100 feet",
+                lifespan: "80-90 years",
+                conservation: "endangered",
+                detailedInfo: "A blue whale's heart alone can weigh as much as an automobile, and its tongue can weigh as much as an elephant. Their calls can be heard from over 500 miles away and are among the loudest sounds made by any animal. They consume up to 4 tons of krill daily during feeding season."
+            },
+            {
+                name: "Pacific Giant Octopus",
+                scientific: "Enteroctopus dofleini",
+                image: "https://images.unsplash.com/photo-1597149692703-e8db7c721003?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "The Pacific giant octopus is the world's largest octopus species, renowned for its intelligence, problem-solving abilities, and remarkable camouflage skills. These creatures are masters of disguise and escape.",
+                habitat: "Rocky reefs and sandy bottoms",
+                diet: "Crabs, fish, sharks, birds",
+                size: "30+ foot arm span",
+                lifespan: "3-5 years",
+                conservation: "least-concern",
+                detailedInfo: "These octopi have three hearts, blue blood, and can change both color and texture instantly to match their surroundings. They're incredibly intelligent, able to solve puzzles, open jars, and even use tools. Each arm has its own brain and can taste what it touches."
+            },
+            {
+                name: "Green Sea Turtle",
+                scientific: "Chelonia mydas",
+                image: "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Sea turtles are ancient mariners that have navigated Earth's oceans for over 100 million years. These gentle giants play crucial roles in marine ecosystems and are beloved by ocean enthusiasts worldwide.",
+                habitat: "Tropical and subtropical seas",
+                diet: "Seagrass, algae, jellyfish",
+                size: "2-6 feet",
+                lifespan: "50-100+ years",
+                conservation: "endangered",
+                detailedInfo: "Sea turtles use magnetic fields to navigate thousands of miles across oceans, returning to the exact beaches where they were born to nest. They can hold their breath for hours while sleeping and have excellent underwater vision but poor eyesight on land."
+            },
+            {
+                name: "Blue Tang Fish",
+                scientific: "Paracanthurus hepatus",
+                image: "https://images.unsplash.com/photo-1544552866-d3ed42536cfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Coral reef fish display some of nature's most vibrant colors and patterns. The blue tang, also known as the regal tang, is a popular species that plays a vital role in maintaining healthy coral reef ecosystems.",
+                habitat: "Coral reefs in Indo-Pacific",
+                diet: "Algae and plankton",
+                size: "6-12 inches",
+                lifespan: "12-20 years",
+                conservation: "least-concern",
+                detailedInfo: "Blue tangs are essential for coral reef health as they graze on algae that would otherwise smother corals. They can change color based on mood and environment, and their bright blue coloration serves as a warning to predators about their poisonous flesh."
+            },
+            {
+                name: "Manta Ray",
+                scientific: "Mobula birostris",
+                image: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Manta rays are gentle giants of the sea, known for their graceful swimming and impressive wingspans. These filter feeders are highly intelligent and display complex social behaviors.",
+                habitat: "Tropical and subtropical waters",
+                diet: "Plankton and small fish",
+                size: "18-29 foot wingspan",
+                lifespan: "40+ years",
+                conservation: "vulnerable",
+                detailedInfo: "Manta rays have the largest brain-to-body ratio of any fish and can recognize themselves in mirrors. They perform acrobatic jumps out of water, possibly for communication, parasite removal, or pure joy. Each manta has unique spot patterns that researchers use for identification."
+            },
+            {
+                name: "Whale Shark",
+                scientific: "Rhincodon typus",
+                image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Despite their intimidating size, whale sharks are gentle giants that feed exclusively on plankton and small fish. They are the largest fish species in the world and are known for their distinctive spotted patterns.",
+                habitat: "Warm waters worldwide",
+                diet: "Plankton, small fish, fish eggs",
+                size: "30-40 feet",
+                lifespan: "70-100 years",
+                conservation: "endangered",
+                detailedInfo: "Each whale shark has a unique spot pattern like human fingerprints. They can dive to depths of 6,000 feet and migrate thousands of miles. Their mouths can open up to 5 feet wide, and they filter feed by swimming with their mouths open to catch plankton and small fish."
+            },
+            {
+                name: "Hammerhead Shark",
+                scientific: "Sphyrna mokarran",
+                image: "https://images.unsplash.com/photo-1544552866-d3ed42536cfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "The great hammerhead shark is instantly recognizable by its distinctive hammer-shaped head structure called a cephalofoil. This unique adaptation gives them superior sensory capabilities and maneuverability.",
+                habitat: "Tropical and warm temperate waters",
+                diet: "Stingrays, fish, squid, crustaceans",
+                size: "13-20 feet",
+                lifespan: "20-30 years",
+                conservation: "critically-endangered",
+                detailedInfo: "The hammerhead's unique head shape provides 360-degree vision and enhanced electroreception to detect prey. They're excellent hunters of stingrays, their favorite prey. Great hammerheads are solitary hunters but sometimes form large schools during migration."
+            },
+            {
+                name: "Clownfish",
+                scientific: "Amphiprioninae",
+                image: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Clownfish, also known as anemonefish, are small, brightly colored fish famous for their symbiotic relationship with sea anemones. They are immune to the anemone's stings and live among their tentacles for protection.",
+                habitat: "Coral reefs in warm waters",
+                diet: "Algae, zooplankton, worms",
+                size: "2-5 inches",
+                lifespan: "6-10 years",
+                conservation: "least-concern",
+                detailedInfo: "Clownfish are born male and can change to female when needed for reproduction. They maintain their immunity to anemone stings by gradually acclimating to the toxins. The largest clownfish in a group will become the dominant female, while the second largest becomes the breeding male."
+            },
+            {
+                name: "Dolphins",
+                scientific: "Delphinus delphis",
+                image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Dolphins are among the most intelligent marine mammals, known for their playful behavior, complex social structures, and remarkable communication abilities. They use echolocation to navigate and hunt.",
+                habitat: "Oceans and seas worldwide",
+                diet: "Fish, squid, shrimp",
+                size: "6-12 feet",
+                lifespan: "20-45 years",
+                conservation: "least-concern",
+                detailedInfo: "Dolphins have individual names (signature whistles) and can recognize themselves in mirrors. They use tools, teach their young, and have been observed showing empathy and helping injured dolphins. Their echolocation is so precise they can detect objects buried in sand."
+            },
+            {
+                name: "Jellyfish",
+                scientific: "Aurelia aurita",
+                image: "https://images.unsplash.com/photo-1597149692703-e8db7c721003?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Moon jellyfish are translucent, bell-shaped creatures that drift through the world's oceans. Despite having no brain, heart, or blood, they have survived for over 500 million years through simple yet effective biology.",
+                habitat: "Oceans worldwide, shallow coastal waters",
+                diet: "Small plankton, fish eggs, mollusks",
+                size: "2-15 inches diameter",
+                lifespan: "12-18 months",
+                conservation: "least-concern",
+                detailedInfo: "Jellyfish are 95% water and have no centralized nervous system, yet they can sense light, detect gravity, and respond to touch. They're immortal in a sense - when stressed, they can reverse their aging process and return to their juvenile state."
+            },
+            {
+                name: "Seahorse",
+                scientific: "Hippocampus",
+                image: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Seahorses are unique marine fish with horse-like heads and curled tails. They're poor swimmers but excellent at camouflage, and uniquely among all animals, the males carry and give birth to the babies.",
+                habitat: "Shallow tropical and temperate waters",
+                diet: "Small crustaceans, plankton",
+                size: "0.6-14 inches",
+                lifespan: "1-5 years",
+                conservation: "vulnerable",
+                detailedInfo: "Seahorses can move each eye independently and change color to match their surroundings. Males have brood pouches where they carry eggs until they hatch. They're monogamous and perform daily greeting dances with their partners."
+            },
+            {
+                name: "Orca",
+                scientific: "Orcinus orca",
+                image: "https://images.unsplash.com/photo-1571406252062-8e40bfcd3cd8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Orcas, also known as killer whales, are the largest members of the dolphin family. These apex predators are highly intelligent, living in complex social groups called pods with unique hunting strategies.",
+                habitat: "Oceans worldwide, from Arctic to Antarctic",
+                diet: "Fish, seals, whales, sharks",
+                size: "20-26 feet",
+                lifespan: "50-80 years",
+                conservation: "least-concern",
+                detailedInfo: "Orcas have distinct dialects that vary by pod, and mothers teach hunting techniques to their calves. Different populations specialize in different prey - some hunt fish, others marine mammals. They're incredibly social and have never been known to attack humans in the wild."
+            },
+            {
+                name: "Anglerfish",
+                scientific: "Lophiiformes",
+                image: "https://images.unsplash.com/photo-1597149692703-e8db7c721003?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Deep-sea anglerfish are mysterious predators that live in the ocean's darkest depths. They're famous for their bioluminescent lure that attracts prey in the pitch-black deep sea environment.",
+                habitat: "Deep ocean, 3000+ feet depth",
+                diet: "Fish, squid, crustaceans",
+                size: "2-24 inches",
+                lifespan: "Unknown, estimated 5+ years",
+                conservation: "least-concern",
+                detailedInfo: "Female anglerfish are much larger than males. In some species, tiny males permanently fuse to females, becoming living sperm producers. Their bioluminescent lure contains bacteria that produce light, and they can unhinge their jaws to swallow prey larger than themselves."
+            },
+            {
+                name: "Moray Eel",
+                scientific: "Muraenidae",
+                image: "https://images.unsplash.com/photo-1544552866-d3ed42536cfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                description: "Moray eels are snake-like fish that hide in crevices and caves throughout coral reefs and rocky areas. Despite their fearsome appearance, they're generally shy and only aggressive when threatened.",
+                habitat: "Coral reefs, rocky crevices worldwide",
+                diet: "Fish, crustaceans, cephalopods",
+                size: "1-13 feet",
+                lifespan: "10-30 years",
+                conservation: "least-concern",
+                detailedInfo: "Moray eels have a second set of jaws called pharyngeal jaws that shoot forward to grab prey. They have poor eyesight but excellent sense of smell. Their skin produces a protective mucus that can be toxic to other fish, and they often form hunting partnerships with groupers."
+            }
+        ];
+
+        let filteredSpecies = [...aquaticSpecies];
+
+        function createSpeciesCard(species, index) {
+            return `
+                <div class="species-card" onclick="openModal(${index})">
+                    <img src="${species.image}" alt="${species.name}" class="species-image">
+                    <div class="species-info">
+                        <h3 class="species-name">${species.name}</h3>
+                        <p class="species-scientific">${species.scientific}</p>
+                        <p class="species-description">${species.description}</p>
+                        <div class="species-facts">
+                            <div class="fact">
+                                <span class="fact-label">Habitat:</span>
+                                <span>${species.habitat}</span>
+                            </div>
+                            <div class="fact">
+                                <span class="fact-label">Size:</span>
+                                <span>${species.size}</span>
+                            </div>
+                            <div class="fact">
+                                <span class="fact-label">Lifespan:</span>
+                                <span>${species.lifespan}</span>
+                            </div>
+                        </div>
+                        <span class="conservation-status ${species.conservation}">${species.conservation.replace('-', ' ').toUpperCase()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSpecies() {
+            const grid = document.getElementById('speciesGrid');
+            grid.innerHTML = filteredSpecies.map((species, index) => createSpeciesCard(species, index)).join('');
+        }
+
+        function openModal(index) {
+            const species = filteredSpecies[index];
+            const modal = document.getElementById('speciesModal');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalBody.innerHTML = `
+                <img src="${species.image}" alt="${species.name}" class="modal-image">
+                <h2 class="species-name">${species.name}</h2>
+                <p class="species-scientific">${species.scientific}</p>
+                <span class="conservation-status ${species.conservation}">${species.conservation.replace('-', ' ').toUpperCase()}</span>
+                <p style="margin: 20px 0; line-height: 1.6;">${species.detailedInfo}</p>
+                <div class="species-facts">
+                    <div class="fact">
+                        <span class="fact-label">Habitat:</span>
+                        <span>${species.habitat}</span>
+                    </div>
+                    <div class="fact">
+                        <span class="fact-label">Diet:</span>
+                        <span>${species.diet}</span>
+                    </div>
+                    <div class="fact">
+                        <span class="fact-label">Size:</span>
+                        <span>${species.size}</span>
+                    </div>
+                    <div class="fact">
+                        <span class="fact-label">Lifespan:</span>
+                        <span>${species.lifespan}</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('speciesModal').style.display = 'none';
+        }
+
+        // Search functionality
+        document.getElementById('searchBar').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredSpecies = aquaticSpecies.filter(species => 
+                species.name.toLowerCase().includes(searchTerm) ||
+                species.scientific.toLowerCase().includes(searchTerm) ||
+                species.description.toLowerCase().includes(searchTerm) ||
+                species.habitat.toLowerCase().includes(searchTerm)
+            );
+            renderSpecies();
+        });
+
+        // Close modal events
+        document.querySelector('.close').addEventListener('click', closeModal);
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('speciesModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Initialize the page
+        renderSpecies();
+    </script>
+</body>
+</html>
